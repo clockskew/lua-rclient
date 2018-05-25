@@ -552,11 +552,17 @@ end
 -- end
 
 local function resp(sconn)
-  local cmd_h = sconn:receive(16)
+  local cmd_h , cerr = sconn:receive(16)
+  if not cmd_h then
+    return nil
+  end
   local rresp, length = dec_cmd_head(cmd_h)
   if not (rresp == RESP.OK) then rerr(ERR[br(rresp, 24)], "no details") end
   if length > 0 then
-    local data = sconn:receive(length)
+    local data, cerr = sconn:receive(length)
+    if not data then
+      return nil
+    end
     local dt_t, dt_f = dec_head(data)
     dt_t = ba(dt_t, 63) -- Cannot have HAS_ATTR, only LARGE.
     assert(dt_t == DT.SEXP)
@@ -704,6 +710,7 @@ local function connect(address, port)
   if not sconn then
     error(serr)
   end
+  sconn:settimeout(1)
   local id, cerr = sconn:receive(32)
   if not id then
     error(cerr)
