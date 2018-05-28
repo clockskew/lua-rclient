@@ -710,7 +710,7 @@ local function connect(address, port)
   if not sconn then
     error(serr)
   end
-  sconn:settimeout(1)
+  sconn:settimeout(60)
   local id, cerr = sconn:receive(32)
   if not id then
     error(cerr)
